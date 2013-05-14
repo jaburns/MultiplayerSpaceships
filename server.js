@@ -100,6 +100,7 @@ Player.prototype.processInput = function( keys )
     }
 }
 
+
 Player.prototype.update = function()
 {
     if( this.latestKeys[ 37 ] ) this.r -= TURN_SPEED; // Left
