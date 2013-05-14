@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<!---------------------------------------->
+<!-- Multiplayer Spaceships             -->
+<!-- client page & script               -->
+<!--                        jaburns.net -->
+<!---------------------------------------->
+<html>
+<head>
+	<style>
+		body,html {
+			padding: 0;
+			margin: 0;
+			height: 100%;
+			overflow: hidden;
+			background: #333;
+		}
+		#content {
+			position: absolute;
+			left: 0;
+			right: 0;
+			top: 0;
+			bottom: 0;
+			background: #222;
+			width: 1144px;
+			height: 768px;
+			margin: auto;			
+			border: 2px solid #222;
+		}
+		#paper {
+			width: 1024px;
+			height: 768px;
+			position: absolute;
+			left: 0;
+			top: 0;
+		}
+		#stars {
+			float: left;
+			height: 768px;
+			width: 1024px;
+			background: black;
+		}
+		#panel {
+			float: left;
+			font: normal 14px sans-serif;
+			color: #CCC;
+			width: 120px;
+		}
+		#panel h3 {
+			text-align: center;
+		}
+		#panel #playerList {
+			list-style-type: none;
+			padding: 0 0 0 10px;
+			margin: 0;
+		}
+	</style>
+	<script type="text/javascript" src="/raphael.js"></script>
+	<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+	<div id="content">
+		<div id="stars"></div>
+		<canvas id="paper" width="1024" height="768"></canvas>
+		<div id="panel">
+			<h3>Score</h3>
+			<ul id="playerList"></ul>
+		</div>
+	</div>
+</body>
+<script>
+
+    var SERVER_ADDRESS = document.URL;
+
+	var ctx = document.getElementById("paper").getContext("2d");
+	var playerListElem = document.getElementById("playerList");
+    
+    var name = prompt("Please enter a name:");
+    if( name === null || name === "" || name === "null" ) {
+        name = "Anonymous";
+    }
+
+	var keys = {};
+
+	ctx.lineWidth = 2;
+	ctx.font = "normal 14px sans-serif";
+
+	function render( state )
+	{
+		ctx.clearRect( 0, 0, 1024, 768 );
+		var newListHTML = "";
+
+        // Draw players
+		for( var i = 0 ; i < state.p.length ; ++i ) 
+		{
+			ctx.save();
+			ctx.strokeStyle = "#"+state.p[i][5];
+			ctx.fillStyle = "#"+state.p[i][5];
+			ctx.translate( state.p[i][0], state.p[i][1] );
+			ctx.fillText( state.p[i][3], 12, -10 );
+			ctx.rotate( state.p[i][2] );
+			ctx.beginPath();
+			ctx.moveTo( -12, -10 );
+			ctx.lineTo( -12,  10 );
+			ctx.lineTo(  12,   0 );
+			ctx.lineTo( -12, -10 );
+			ctx.lineTo( -12,   0 );
+			ctx.closePath();
+			ctx.stroke();
+			if( i==state.i && keys[38] ) {
+				ctx.beginPath();
+				ctx.moveTo( -12, -4 );
+				ctx.lineTo( -22,  0 );
+				ctx.lineTo( -12,  4 );
+				ctx.closePath();
+				ctx.stroke();
+			}
+			ctx.restore();
+
+			newListHTML += "<li>"+state.p[i][3]+" - "+state.p[i][4]+"</li>";
+		}
+
+        // Draw bullets
+		for( var i = 0 ; i < state.b.length ; ++i )
+		{
+			ctx.fillStyle = "#"+state.b[i][2];
+
+			ctx.save();
+			ctx.translate( state.b[i][0], state.b[i][1] );
+			ctx.fillRect( -4, -4, 4, 4 );
+			ctx.restore();
+		}
+
+		playerListElem.innerHTML = newListHTML;
+	}
+
+    // Connect to the server and bind events.
+    var socket = io.connect( SERVER_ADDRESS );
+    socket.on("connect", function ()
+    {
+        window.onkeydown = function(e) { 
+            keys[ e.keyCode ] = true;
+            socket.send( JSON.stringify(keys) );
+        }
+        window.onkeyup = function(e) {
+            delete keys[ e.keyCode ];
+            socket.send( JSON.stringify(keys) );
+        }
+
+        socket.on("message", function(data) {
+            var state = JSON.parse(data);
+            render( state );
+        });
+
+        socket.send(JSON.stringify({name:name}));
+    });
+
+// ### Draw a shifting starfield in the background ######################################
+
+	var STARS = 100;
+	var ANGLE = Math.PI / 8;		
+	var RADIUS_MIN = 0.5;
+	var RADIUS_MAX = 1;
+	var SPEED_MIN = 0.5/5000;
+	var W = 1024, H = 768;
+	var SPEED_MAX = 1.5/5000;
+	
+	var R = Raphael( "stars", W, H );
+	var stars = [];
+	
+	for( var i = 0 ; i < STARS ; ++i ) 
+	{
+		var cx = Math.random();
+		var cy = Math.random();
+		var distance = Math.random();
+		
+		var radius = RADIUS_MIN + distance*(RADIUS_MAX-RADIUS_MIN);
+		var speed  = SPEED_MIN  + distance*( SPEED_MAX-SPEED_MIN );
+		
+		var svgObject = R.circle( cx*W, cy*H, radius ).attr( {fill: "#777", stroke: 0} );
+		
+		var dx = Math.cos( ANGLE );
+		var dy = Math.sin( ANGLE );
+		stars.push( { x:cx, y:cy, vx:(speed*dx), vy:(speed*dy), o:svgObject } );
+	}
+	
+	function renderStars()
+	{
+		for( var i = 0 ; i < stars.length ; ++i )
+		{
+			var s = stars[i];
+			s.x += s.vx;
+			s.y += s.vy;
+			if( s.x > 1 ) s.x -= 1;
+			if( s.y > 1 ) s.y -= 1;
+			s.o.attr( "cx", s.x*W );
+			s.o.attr( "cy", s.y*H );
+		}
+	}
+	
+	setInterval( renderStars, 50 );
+
+</script>
+</html>
