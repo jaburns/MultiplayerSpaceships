@@ -8,12 +8,12 @@
 
 function getNewCoolColor()
 {
-	var h = Math.random();
-	var s = 0.6;
-	var v = 0.8;
+    var h = Math.random();
+    var s = 0.6;
+    var v = 0.8;
 
     var var_R, var_G, var_B;
-	
+    
     var var_H = h * 6;
     var var_i = Math.floor( var_H );
     var var_1 = v * ( 1 - s );
@@ -34,7 +34,7 @@ function getNewCoolColor()
     if( r.length < 2 ) r = "0" + r;
     if( g.length < 2 ) g = "0" + g;
     if( b.length < 2 ) b = "0" + b;
-	
+    
     return r+g+b;
 }
 
@@ -44,14 +44,14 @@ var bullets = [];
 
 function Bullet( owner )
 {
-	this.x = owner.x + owner.vx + 18 * Math.cos( owner.r );
-	this.y = owner.y + owner.vy + 18 * Math.sin( owner.r );
+    this.x = owner.x + owner.vx + 18 * Math.cos( owner.r );
+    this.y = owner.y + owner.vy + 18 * Math.sin( owner.r );
 
-	this.vx = 6 * Math.cos( owner.r ) + owner.vx;
-	this.vy = 6 * Math.sin( owner.r ) + owner.vy;
+    this.vx = 6 * Math.cos( owner.r ) + owner.vx;
+    this.vy = 6 * Math.sin( owner.r ) + owner.vy;
 
-	this.owner = owner;
-	this.color = owner.color;
+    this.owner = owner;
+    this.color = owner.color;
 }
 
 Bullet.prototype.update = function()
@@ -74,20 +74,20 @@ var TURN_SPEED   = 8 / 180 * Math.PI;
 
 function Player()
 {
-	this.name = "";
-	this.score = 0;
-	this.color = getNewCoolColor();
+    this.name = "";
+    this.score = 0;
+    this.color = getNewCoolColor();
     
-	this.reset = function()
-	{
-		this.x =  FIELD_WIDTH * Math.random();
-		this.y = FIELD_HEIGHT * Math.random();
-		this.vx = 0;
-		this.vy = 0;
-		this.r  = 0;
-		this.holdingSpace = false;
-		this.latestKeys = {};
-	}	
+    this.reset = function()
+    {
+        this.x =  FIELD_WIDTH * Math.random();
+        this.y = FIELD_HEIGHT * Math.random();
+        this.vx = 0;
+        this.vy = 0;
+        this.r  = 0;
+        this.holdingSpace = false;
+        this.latestKeys = {};
+    }    
     this.reset();
 }
 
@@ -161,47 +161,47 @@ Player.prototype.update = function()
 
 function gameLoop()
 {
-	var statePacket = {
-		p: [],
-		b: [],
-		i: -1
-	};
+    var statePacket = {
+        p: [],
+        b: [],
+        i: -1
+    };
 
-	var deadBullets = [];
-	for( var i = 0 ; i < bullets.length ; ++i )
-	{
-		bullets[i].update();
-		if( bullets[i].x < 0 || bullets[i].x > FIELD_WIDTH || bullets[i].y < 0 || bullets[i].y > FIELD_HEIGHT ) {
-			deadBullets.push( bullets[i] );
-		}
-		statePacket.b.push([
-			bullets[i].x,
-			bullets[i].y,
-			bullets[i].color
-		]);
-	}
+    var deadBullets = [];
+    for( var i = 0 ; i < bullets.length ; ++i )
+    {
+        bullets[i].update();
+        if( bullets[i].x < 0 || bullets[i].x > FIELD_WIDTH || bullets[i].y < 0 || bullets[i].y > FIELD_HEIGHT ) {
+            deadBullets.push( bullets[i] );
+        }
+        statePacket.b.push([
+            bullets[i].x,
+            bullets[i].y,
+            bullets[i].color
+        ]);
+    }
 
-	while( deadBullets.length > 0 ) {
-		bullets.splice( bullets.indexOf( deadBullets.pop() ), 1 );
-	}
+    while( deadBullets.length > 0 ) {
+        bullets.splice( bullets.indexOf( deadBullets.pop() ), 1 );
+    }
 
-	for( var i = 0 ; i < players.length ; ++i ) {
-		players[i].update();
-		statePacket.p.push([
-			players[i].x,
-			players[i].y,
-			players[i].r,
-			players[i].name,
-			players[i].score,
-			players[i].color,
-		]);
-	}
+    for( var i = 0 ; i < players.length ; ++i ) {
+        players[i].update();
+        statePacket.p.push([
+            players[i].x,
+            players[i].y,
+            players[i].r,
+            players[i].name,
+            players[i].score,
+            players[i].color,
+        ]);
+    }
 
-	for( var i = 0 ; i < playerSockets.length ; ++i )
-	{
-		statePacket.i = i;
-		playerSockets[i].volatile.send(JSON.stringify( statePacket ));
-	}
+    for( var i = 0 ; i < playerSockets.length ; ++i )
+    {
+        statePacket.i = i;
+        playerSockets[i].volatile.send(JSON.stringify( statePacket ));
+    }
 }
 
 // ### Statically serve the client page and raphael.js ##################################
@@ -214,23 +214,23 @@ var fs = require("fs");
 app.listen(PORT);
 function handler( req, res )
 {
-	var filepath = req.url;
-	if( filepath === "/" ) filepath = "/client.html";
+    var filepath = req.url;
+    if( filepath === "/" ) filepath = "/client.html";
 
-	if( filepath !== "/client.html" && filepath !== "/raphael.js" ) {
-		res.writeHead(500);
-	    return res.end("This server only serves spaceships!");
-	}
-	
-	fs.readFile(__dirname + filepath,
-	function (err, data) {
-	    if (err) {
-	    	res.writeHead(500);
-	    	return res.end("Error loading page.");
-		}
-		res.writeHead(200);
-		res.end(data);
-	});
+    if( filepath !== "/client.html" && filepath !== "/raphael.js" ) {
+        res.writeHead(500);
+        return res.end("This server only serves spaceships!");
+    }
+    
+    fs.readFile(__dirname + filepath,
+    function (err, data) {
+        if (err) {
+            res.writeHead(500);
+            return res.end("Error loading page.");
+        }
+        res.writeHead(200);
+        res.end(data);
+    });
 }
 
 // ### Socket.io configuration and connection management ################################
@@ -243,30 +243,30 @@ io.set( "log level", 2 );
 
 io.sockets.on("connection", function( socket )
 {
-	var player = new Player();
+    var player = new Player();
 
-	players.push( player );
-	playerSockets.push( socket );
+    players.push( player );
+    playerSockets.push( socket );
 
-	socket.on("message", function( data ) {
-		player.processInput( JSON.parse( data ) );
-	});
-	
-	socket.on("disconnect", function()
-	{
-		var index = playerSockets.indexOf( socket );
-		players.splice( index, 1 );
-		playerSockets.splice( index, 1 );
+    socket.on("message", function( data ) {
+        player.processInput( JSON.parse( data ) );
+    });
+    
+    socket.on("disconnect", function()
+    {
+        var index = playerSockets.indexOf( socket );
+        players.splice( index, 1 );
+        playerSockets.splice( index, 1 );
 
-		if( players.length === 0 ) {
-			clearInterval( gameLoopInterval );
-			gameLoopInterval = null;
-		}
-	});
+        if( players.length === 0 ) {
+            clearInterval( gameLoopInterval );
+            gameLoopInterval = null;
+        }
+    });
 
-	if( gameLoopInterval === null ) {
-		gameLoopInterval = setInterval( gameLoop, 33 );
-	}
+    if( gameLoopInterval === null ) {
+        gameLoopInterval = setInterval( gameLoop, 33 );
+    }
 });
 
 // ######################################################################################
