@@ -23,13 +23,14 @@
             background: #222;
             width: 1144px;
             height: 768px;
-            margin: auto;            
+            margin: auto;
             border: 5px solid #222;
         }
         #paper {
+            background: black;
             width: 1024px;
             height: 768px;
-            position: absolute;
+            float: left;
             left: 0;
             top: 0;
         }
@@ -65,7 +66,7 @@
 
     var ctx = document.getElementById("paper").getContext("2d");
     var playerListElem = document.getElementById("playerList");
-    
+
     var name = prompt("Please enter a name:");
     if( name === null || name === "" || name === "null" ) {
         name = "Anonymous";
@@ -82,7 +83,7 @@
         var newListHTML = "";
 
         // Draw players
-        for( var i = 0 ; i < state.p.length ; ++i ) 
+        for( var i = 0 ; i < state.p.length ; ++i )
         {
             ctx.save();
             ctx.strokeStyle = "#"+state.p[i][5];
@@ -129,7 +130,7 @@
     var socket = io.connect( SERVER_ADDRESS );
     socket.on("connect", function ()
     {
-        window.onkeydown = function(e) { 
+        window.onkeydown = function(e) {
             keys[ e.keyCode ] = true;
             socket.send( JSON.stringify(keys) );
         }
